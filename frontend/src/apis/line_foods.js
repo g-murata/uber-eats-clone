@@ -1,4 +1,3 @@
-// --- ここから追加 ---
 import axios from 'axios';
 import { lineFoods, lineFoodsReplace } from '../urls/index'
 
@@ -28,4 +27,11 @@ export const replaceLineFoods = (params) => {
     .catch((e) => { throw e; })
 };
 
-// --- ここまで追加 ---
+export const fetchLineFoods = () => {
+  return axios.get(lineFoods)
+    .then(res => {
+      console.log(res)
+      return res.data
+    })
+    .catch((e) => { throw e; })
+};
