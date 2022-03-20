@@ -1,7 +1,14 @@
 // useStateを新たにimport
 import React, { Fragment, useReducer, useEffect, useState } from 'react';
 import styled from 'styled-components';
-import { Link } from "react-router-dom";
+import { useHistory, Link } from "react-router-dom";
+
+import { NewOrderConfirmDialog } from '../components/NewOrderConfirmDialog';
+
+import { postLineFoods, replaceLineFoods } from '../apis/line_foods';
+
+import { HTTP_STATUS_CODE } from '../constants';
+
 
 // components
 import { LocalMallIcon } from '../components/Icons';
@@ -58,24 +65,53 @@ const ItemWrapper = styled.div`
   margin: 16px;
 `;
 
-const submitOrder = () => {
-  // 後ほど仮注文のAPIを実装します
-  console.log('登録ボタンが押された！')
-}
-
 export const Foods = ({
   match
 }) => {
+  const history = useHistory();
   const [foodsState, dispatch] = useReducer(foodsReducer, foodsInitialState);
 
-  // --- ここから追加 ---
   const initialState = {
     isOpenOrderDialog: false,
     selectedFood: null,
     selectedFoodCount: 1,
-  }
+    isOpenNewOrderDialog: false,
+    existingResutaurautName: '',
+    newResutaurautName: '',
+  };
+
   const [state, setState] = useState(initialState);
-  // --- ここまで追加 ---
+
+
+  const submitOrder = () => {
+    postLineFoods({
+      foodId: state.selectedFood.id,
+      count: state.selectedFoodCount,
+    }).then(() => history.push('/orders'))
+      .catch((e) => {
+        if (e.response.status === HTTP_STATUS_CODE.NOT_ACCEPTABLE) {
+          setState({
+            ...state,
+            isOpenOrderDialog: false,
+            isOpenNewOrderDialog: true,
+            existingResutaurautName: e.response.data.existing_restaurant,
+            newResutaurautName: e.response.data.new_restaurant,
+          })
+        } else {
+          throw e;
+        }
+      })
+  };
+
+  // --- ここから追加 ---
+  const replaceOrder = () => {
+    replaceLineFoods({
+      foodId: state.selectedFood.id,
+      count: state.selectedFoodCount,
+    }).then(() => history.push('/orders'))
+  };
+  // --- ここから追加 ---
+
 
   useEffect(() => {
     dispatch({ type: foodsActionTyps.FETCHING });
@@ -158,6 +194,17 @@ export const Foods = ({
           })}
         />
         // --- ここまで修正 ---
+      }
+
+      {
+        state.isOpenNewOrderDialog &&
+        <NewOrderConfirmDialog
+          isOpen={state.isOpenNewOrderDialog}
+          onClose={() => setState({ ...state, isOpenNewOrderDialog: false })}
+          existingResutaurautName={state.existingResutaurautName}
+          newResutaurautName={state.newResutaurautName}
+          onClickSubmit={() => replaceOrder()}
+        />
       }
       // --- ここまで追加 ---
     </Fragment>

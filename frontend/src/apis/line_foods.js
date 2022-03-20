@@ -1,6 +1,6 @@
 // --- ここから追加 ---
 import axios from 'axios';
-import { lineFoods } from '../urls/index'
+import { lineFoods, lineFoodsReplace } from '../urls/index'
 
 export const postLineFoods = (params) => {
   return axios.post(lineFoods,
@@ -14,4 +14,18 @@ export const postLineFoods = (params) => {
     })
     .catch((e) => { throw e; })
 };
+
+export const replaceLineFoods = (params) => {
+  return axios.put(lineFoodsReplace,
+    {
+      food_id: params.foodId,
+      count: params.count,
+    }
+  )
+    .then(res => {
+      return res.data
+    })
+    .catch((e) => { throw e; })
+};
+
 // --- ここまで追加 ---
